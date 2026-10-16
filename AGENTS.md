@@ -1,41 +1,31 @@
-This is an Expo/React Native mobile application. Prioritize mobile-first patterns, performance, and cross-platform compatibility.
+# PixFala — instruções para agentes
 
-## Expo has changed — do not trust your training data
+## Como navegar no projeto
 
-Expo ships breaking changes every SDK release. APIs you remember are likely renamed, moved, or removed. Before writing any code that touches an Expo, EAS, or React Native API:
+Em tarefas de código, consulte `MAPA_DO_APP.md` para localizar a área relevante; abra primeiro o ponto de entrada indicado e siga imports, consumidores e dependências diretamente relacionadas. Não faça varreduras amplas sem necessidade, mas não limite uma mudança a um único arquivo quando o fluxo atravessar telas, serviços ou código nativo.
 
-1. Read the major version of the `expo` package in `package.json`.
-2. Fetch the matching versioned docs: `https://docs.expo.dev/versions/v<major>.0.0/`
-3. For anything else, fetch https://docs.expo.dev/llms.txt — an index of all Expo docs with corrections to common LLM misconceptions. Follow its links to the specific page you need; never answer from memory.
+Para detalhes de comportamento e fluxos, consulte `ESPECIFICACAO_TECNICA_PIXFALA.md` quando a tarefa exigir esse contexto. Se os documentos divergirem do código, confirme o comportamento no código e atualize a especificação quando a mudança afetar o que ela descreve.
 
-## Commands
+## Manutenção da documentação
 
-Use `bunx` instead of `npx` if the project uses bun (`bun.lock` present).
+- Na mesma tarefa, atualize os arquivos Markdown pertinentes quando uma mudança alterar arquitetura, fluxos entre módulos, comportamento importante do usuário, persistência/dados, integração nativa/permissões, dependências ou comandos de desenvolvimento/build.
+- Atualize `MAPA_DO_APP.md` quando caminhos, responsabilidades ou relações entre módulos mudarem; atualize `ESPECIFICACAO_TECNICA_PIXFALA.md` quando mudar comportamento ou detalhes técnicos ali documentados. Atualize ambos somente quando ambos forem afetados.
+- Mudanças internas pequenas que não alterem comportamento nem arquitetura não exigem atualização de documentação.
+- Não encerre uma mudança crucial sem atualizar a documentação relevante ou explicar claramente por que não há documento aplicável. Mantenha a documentação concisa, correta e sem duplicar conteúdo entre arquivos.
 
-```bash
-npx expo install <package>  # ALWAYS use instead of npm/yarn/pnpm/bun add — resolves SDK-compatible versions
-npx expo start              # start the dev server
-npx expo lint               # lint
-npx tsc --noEmit            # typecheck
-npx expo-doctor             # diagnose dependency and config issues
-npx expo install --fix      # fix incompatible package versions
-```
+## Regras de implementação
 
-Run lint and typecheck before declaring any task done.
+- Este app usa Expo, React Native, TypeScript e Expo Router. As rotas ficam em `app/` (não em `src/app/`); código compartilhado fica em `components/`, `services/`, `utils/` e `constants/`.
+- Antes de alterar APIs do Expo, EAS ou React Native, confira a versão instalada de `expo` em `package.json` e consulte `https://docs.expo.dev/versions/v<major>.0.0/`. Para tópicos não cobertos, use `https://docs.expo.dev/llms.txt` e siga para a documentação específica.
+- Preserve compatibilidade multiplataforma na UI, mas reconheça que o listener de notificações e a fila nativa são específicos do Android.
+- Se `ios/` e `android/` não existirem, são gerados pelo Continuous Native Generation. Configure comportamento nativo por `app.json` ou config plugins; não crie nem edite diretórios nativos gerados à mão.
+- Para dependências Expo, use `npx expo install <pacote>`; para outras dependências, use npm. Este repositório usa `package-lock.json`; use `bunx` apenas se o projeto passar a usar Bun.
+- Não execute `expo install --fix` como rotina: use-o somente se a validação indicar incompatibilidades de versões.
 
-## Navigation & Routing
+## Validação
 
-- Use **Expo Router** for all navigation. Routes live in `src/app/` — every file there is a screen, `_layout.tsx` files define navigators. Keep non-route code (components, hooks, utils) outside `src/app/`.
-- Import `Link`, `router`, and `useLocalSearchParams` from `expo-router`.
-- Docs: https://docs.expo.dev/router/introduction.md
+- `npm run lint`
+- `npx tsc --noEmit`
+- `npx expo-doctor` quando a mudança envolver configuração ou dependências do Expo.
 
-## Building with EAS
-
-Use EAS to build, sign, and submit the app in the cloud (`eas build`, `eas submit`) and to ship over-the-air updates (`eas update`) — no local Xcode or Android Studio required. Run EAS CLI as `bunx eas-cli <command>` in Bun projects, or `npx eas-cli@latest <command>` otherwise; substitute that for bare `eas` in docs examples.
-Docs: https://docs.expo.dev/eas/index.md
-
-## Rules
-
-- If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
-- Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
-- Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+Rode lint e typecheck antes de concluir mudanças de código. Mudanças nativas Android também podem exigir validação em build de desenvolvimento e em dispositivo; não afirme que o comportamento do sistema foi validado apenas com checagens TypeScript.
